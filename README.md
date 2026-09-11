@@ -2,47 +2,47 @@
 
 
 
-# [Project Name] 🎯
+# SOC Somanu Oru Chaya 🎯
 
 
 ## Basic Details
-### Team Name: [Name]
+### Team Name: Grove Street
 
 
 ### Team Members
-- Team Lead: [Name] - [College]
-- Member 2: [Name] - [College]
-- Member 3: [Name] - [College]
+- Team Lead: Aravind R - NSSCE
+- Member 2: Arjun M L - NSSCE
 
 ### Project Description
-[2-3 lines about what your project does]
+Soman Chettan is  
 
 ### The Problem (that doesn't exist)
-[What ridiculous problem are you solving?]
+Soman chettan needs an അടിച്ച് പതപ്പിച്ച chaya, which can only be achived by the true legends of the tea making communities of kerala. Without this he cannot start his day...
 
 ### The Solution (that nobody asked for)
-[How are you solving it? Keep it fun!]
+You can take innitiative and LITERALLY make the adicha chaya yourself
 
 ## Technical Details
 ### Technologies/Components Used
 For Software:
-- [Languages used]
-- [Frameworks used]
-- [Libraries used]
-- [Tools used]
-
-For Hardware:
-- [List main components]
-- [List specifications]
-- [List tools required]
+- JavaScript
+- React
+- Tailwind CSS
+- MediaPipe Hand Landmarker
+- Hand Landmarker model: `https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task`
+- Vite and npm
 
 ### Implementation
 For Software:
 # Installation
-[commands]
+```bash
+npm install
+```
 
 # Run
-[commands]
+```bash
+npm run dev
+```
 
 ### Project Documentation
 For Software:
