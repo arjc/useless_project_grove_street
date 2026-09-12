@@ -416,7 +416,8 @@ export default function HandTracker({
       if (endingStarted) return;
       endingStarted = true;
       callbacksRef.current.onCountdownChange?.(null);
-      if (glasses[heldHandSlot ?? 0].volume < 50) {
+      const totalChayaVolume = glasses.reduce((total, glass) => total + glass.volume, 0);
+      if (totalChayaVolume < 50) {
         callbacksRef.current.onNotice?.("NOT ENOUGH CHAAYA");
         window.setTimeout(() => {
           activeFrame = 0;
