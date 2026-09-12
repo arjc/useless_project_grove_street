@@ -25,7 +25,7 @@ const App = () => {
   }, [notice]);
 
   useEffect(() => {
-    setNotice(currentFrame === 2 ? 'SHOW BOTH HANDS TO POUR' : 'SHOW ONE HAND HERE');
+    setNotice(currentFrame !== 2 ? 'SHOW ATLEAST ONE HAND HERE' : 'SHOW BOTH HANDS TO POUR');
   }, [currentFrame]);
 
   const handleEnding = (endingName) => {
