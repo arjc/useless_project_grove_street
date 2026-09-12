@@ -24,6 +24,10 @@ const App = () => {
     return () => window.clearTimeout(timeout);
   }, [notice]);
 
+  useEffect(() => {
+    setNotice(currentFrame === 2 ? 'SHOW BOTH HANDS TO POUR' : 'SHOW ONE HAND HERE');
+  }, [currentFrame]);
+
   const handleEnding = (endingName) => {
     setCurrentFrame(0);
     setCountdown(null);
