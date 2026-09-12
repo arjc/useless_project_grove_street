@@ -556,14 +556,14 @@ And somehow, that's stressful enough.
 
 
 # Screenshots (Add at least 3)
-![Screenshot1](Add screenshot 1 here with proper name)
-*Add caption explaining what this shows*
+![Interface](https://github.com/arjc/useless_project_grove_street/blob/main/public/Interface.png)
+*Touch free interface allows the users to make Soman chettan a chaaya with ease yet some skill required unless you are a pro member of the kerala chaya adikkal committy*
 
-![Screenshot2](Add screenshot 2 here with proper name)
-*Add caption explaining what this shows*
+![Pouring demo](https://github.com/arjc/useless_project_grove_street/blob/main/public/pouring.png)
+*Demonstration how we can pour chaaya from one filled glass to another*
 
-![Screenshot3](Add screenshot 3 here with proper name)
-*Add caption explaining what this shows*
+![Soman Collage](https://github.com/arjc/useless_project_grove_street/blob/main/public/soman.png)
+*Final result on how Soman chettan will react to your chaaya*
 
 # Diagrams
 ```text
@@ -619,8 +619,8 @@ And somehow, that's stressful enough.
 
 ### Project Demo
 # Video
-[Add your demo video link here]
-*Explain what the video demonstrates*
+[Drive link Video Demonstrating how we use the project to make a chaya for Soman chettan](https://drive.google.com/file/d/1GPLAoozh_aGafN80KGEWJ3hAYVx5TsE7/view?usp=sharing)
+*PRoject deomnstration on how we can make a chaya for Soman chettan*
 
 
 ## Team Contributions
