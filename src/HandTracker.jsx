@@ -50,9 +50,9 @@ export default function HandTracker({
 
     const detectionInterval = 50;
     const frameOneHoldDuration = 650;
-    const frameOneMilkZone = { right: 0.40 };
-    const frameTwoSugarZone = { right: 0.45, bottom: 0.8 };
-    const frameTwoChayaPodiZone = { left: 0.15, bottom: 0.8 };
+    const frameOneMilkZone = { right: 0.6 };
+    const frameTwoSugarZone = { right: 0.5, bottom: 0.7 };
+    const frameTwoChayaPodiZone = { left: 0.5, bottom: 0.7};
 
     const landmarkGracePeriod = 450;
     let activeFrame = 0;
@@ -434,7 +434,7 @@ export default function HandTracker({
         return;
       }
 
-      const ending = score < 4 ? "BAD" : score <= 7 ? "MED" : "GOOD";
+      const ending = score < 6 ? "BAD" : score <= 9 ? "MED" : "GOOD";
       callbacksRef.current.onEnding?.(ending);
     }
 
@@ -462,9 +462,9 @@ export default function HandTracker({
       const y = hand.anchor.y / canvasRef.current.height;
       if (!sugarAdded && x > frameTwoSugarZone.right && y > frameTwoSugarZone.bottom) {
         sugarAdded = true;
-        score += 5;
+        score += 3;
         callbacksRef.current.onScoreChange?.(score);
-        callbacksRef.current.onNotice?.("SUGAR ADDED");
+        callbacksRef.current.onNotice?.("പഞ്ചസാര ADDED");
       }
       if (x < frameTwoChayaPodiZone.left && y > frameTwoChayaPodiZone.bottom) {
         glasses[heldHandSlot] = { volume: 100, override: null };
