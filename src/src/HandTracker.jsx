@@ -5,15 +5,31 @@ import {
 } from "@mediapipe/tasks-vision";
 import tumblerUrl from "./assets/tumbler.png";
 import emptyUrl from "./assets/GLASS/CHAYA_EMPTY.svg";
+import milkUrl from "./assets/GLASS/CHAYA_MILK.svg";
 import lowUrl from "./assets/GLASS/CHAYA_LOW.svg";
 import halfUrl from "./assets/GLASS/CHAYA _HALF.svg";
 import fullUrl from "./assets/GLASS/CHAYA_FULL.svg";
 
-export default function HandTracker() {
+export default function HandTracker({
+  currentFrame,
+  onFrameChange,
+  onScoreChange,
+  onCountdownChange,
+  onNotice,
+  onEnding,
+  onReset,
+}) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
   const handLandmarkerRef = useRef(null);
+  const currentFrameRef = useRef(currentFrame);
+  const callbacksRef = useRef({ onFrameChange, onScoreChange, onCountdownChange, onNotice, onEnding, onReset });
+
+  useEffect(() => {
+    currentFrameRef.current = currentFrame;
+    callbacksRef.current = { onFrameChange, onScoreChange, onCountdownChange, onNotice, onEnding, onReset };
+  }, [currentFrame, onFrameChange, onScoreChange, onCountdownChange, onNotice, onEnding, onReset]);
 
   useEffect(() => {
     let animationFrame;
@@ -24,17 +40,30 @@ export default function HandTracker() {
     let lastSeenTime = 0;
     let lastFrameTime = performance.now();
     let handPoses = [];
-    const glasses = [{ volume: 100 }, { volume: 0 }];
+    const glasses = [{ volume: 0, override: "empty" }, { volume: 0, override: "empty" }];
     const teaParticles = [];
-    const stateImages = [emptyUrl, lowUrl, halfUrl, fullUrl].map((source) => {
+    const stateImages = [emptyUrl, milkUrl, lowUrl, halfUrl, fullUrl].map((source) => {
       const image = new Image();
       image.src = source;
       return image;
     });
 
     const detectionInterval = 50;
+    const frameOneHoldDuration = 650;
+    const frameOneMilkZone = { right: 0.40 };
+    const frameTwoSugarZone = { right: 0.45, bottom: 0.8 };
+    const frameTwoChayaPodiZone = { left: 0.15, bottom: 0.8 };
 
     const landmarkGracePeriod = 450;
+    let activeFrame = 0;
+    let heldHandSlot = null;
+    let frameOneHoldStarted = null;
+    let sugarAdded = false;
+    let score = 0;
+    let countdownEndsAt = null;
+    let endingStarted = false;
+    const transferredAmounts = [0, 0];
+    const tossScored = [false, false];
     // 0 is base bottom of the palm and 10 is the top most of the plam's upper part...
     // const trackedLandmarks = [10, 0];
     const trackedLandmarks = [5, 17];
@@ -134,11 +163,56 @@ export default function HandTracker() {
         }
       }
 
+      syncFrameState(now);
+      checkFrameOneProgress(now);
+      checkFrameTwoProgress();
       const deltaTime = Math.min((now - lastFrameTime) / 1000, 0.05);
       lastFrameTime = now;
       updateTea(handPoses, deltaTime, canvas.width, canvas.height);
       drawHands(now - lastSeenTime <= landmarkGracePeriod);
+      updateCountdown(now);
       animationFrame = requestAnimationFrame(detectHands);
+    }
+
+    function syncFrameState(now) {
+      const frame = currentFrameRef.current;
+      if (frame === activeFrame) return;
+
+      activeFrame = frame;
+      frameOneHoldStarted = null;
+      if (frame === 2) {
+        const sourceSlot = heldHandSlot ?? 0;
+        glasses[sourceSlot] = { volume: 100, override: null };
+        glasses[sourceSlot === 0 ? 1 : 0] = { volume: 0, override: "empty" };
+        transferredAmounts[0] = 0;
+        transferredAmounts[1] = 0;
+        tossScored[0] = false;
+        tossScored[1] = false;
+        teaParticles.length = 0;
+        countdownEndsAt = now + 15000;
+        callbacksRef.current.onCountdownChange?.(15);
+      } else if (frame < 2) {
+        countdownEndsAt = null;
+        callbacksRef.current.onCountdownChange?.(null);
+        if (frame === 0 && activeFrame === 2) {
+          heldHandSlot = null;
+          sugarAdded = false;
+          endingStarted = false;
+          glasses[0] = { volume: 0, override: "empty" };
+          glasses[1] = { volume: 0, override: "empty" };
+          transferredAmounts[0] = 0;
+          transferredAmounts[1] = 0;
+          tossScored[0] = false;
+          tossScored[1] = false;
+        }
+      }
+    }
+
+    function updateCountdown(now) {
+      if (activeFrame !== 2 || !countdownEndsAt || endingStarted) return;
+      const secondsLeft = Math.max(0, Math.ceil((countdownEndsAt - now) / 1000));
+      callbacksRef.current.onCountdownChange?.(secondsLeft);
+      if (secondsLeft === 0) finishPouring();
     }
 
     function drawHands(shouldKeepLastResults) {
@@ -156,9 +230,14 @@ export default function HandTracker() {
 
       if (!handPoses.length || !shouldKeepLastResults) return;
 
-      handPoses.forEach((hand, index) => {
-        if (hand) drawChayaGlass(ctx, hand, glasses[index], canvas.width);
-      });
+      if (activeFrame < 2) {
+        const hand = heldHandSlot === null ? handPoses.find(Boolean) : handPoses[heldHandSlot];
+        if (hand) drawChayaGlass(ctx, hand, { override: activeFrame === 0 ? "empty" : "milk" }, canvas.width);
+      } else {
+        handPoses.forEach((hand, index) => {
+          if (hand) drawChayaGlass(ctx, hand, glasses[index], canvas.width);
+        });
+      }
       drawTeaParticles(ctx);
     }
 
@@ -225,9 +304,15 @@ export default function HandTracker() {
     // }
 
     function drawChayaGlass(ctx, hand, glass, width) {
-      const stateImage = stateImages[getStateIndex(glass.volume)];
+      const stateIndex = glass.override === "milk"
+        ? 1
+        : glass.override === "empty"
+          ? 0
+          : glass.volume <= 0
+            ? 0
+            : getStateIndex(glass.volume) + 1;
+      const stateImage = stateImages[stateIndex];
       if (!stateImage.complete || !stateImage.naturalWidth) return;
-
       ctx.save();
       ctx.translate(hand.anchor.x, hand.anchor.y);
       ctx.rotate(hand.angle);
@@ -249,13 +334,13 @@ export default function HandTracker() {
 
     function getStateIndex(volume) {
       if (volume <= 0) return 0;
-      if (volume < 10) return 1;
+      if (volume < 25) return 1;
       if (volume < 50) return 2;
       return 3;
     }
 
     function updateTea(poses, deltaTime, width, height) {
-      if (!poses[0] || !poses[1]) {
+      if (activeFrame !== 2 || !poses[0] || !poses[1]) {
         teaParticles.length = 0;
         return;
       }
@@ -266,7 +351,6 @@ export default function HandTracker() {
         const glass = glasses[sourceIndex];
 
         // A fuller tumbler must be tilted further before it starts pouring.
-        const fillRatio = Math.max(0, Math.min(1, glass.volume / 1));
         const requiredTilt = -0.1;
 
         if (glass.volume <= 0 || source.brimDirection.y < requiredTilt) return;
@@ -302,12 +386,94 @@ export default function HandTracker() {
         if (!target) continue;
         const hitRadius = Math.max(18, target.size * 0.14);
         if (Math.hypot(particle.x - target.brim.x, particle.y - target.brim.y) < hitRadius) {
-          glasses[particle.targetIndex].volume = Math.min(100, glasses[particle.targetIndex].volume + particle.amount);
+          const targetGlass = glasses[particle.targetIndex];
+          const wasEmpty = targetGlass.volume <= 0;
+          targetGlass.override = null;
+          targetGlass.volume = Math.min(100, targetGlass.volume + particle.amount);
+          transferredAmounts[sourceIndexForTarget(particle.targetIndex)] += particle.amount;
+          if (wasEmpty) {
+            transferredAmounts[particle.targetIndex] = 0;
+            tossScored[particle.targetIndex] = false;
+          }
+          const sourceIndex = sourceIndexForTarget(particle.targetIndex);
+          if (glasses[sourceIndex].volume <= 0 && transferredAmounts[sourceIndex] >= 1 && !tossScored[sourceIndex]) {
+            tossScored[sourceIndex] = true;
+            score += 1;
+            callbacksRef.current.onScoreChange?.(score);
+          }
           teaParticles.splice(index, 1);
         } else if (particle.life <= 0 || particle.y > height + 40 || particle.x < -40 || particle.x > width + 40) {
           teaParticles.splice(index, 1);
         }
       }
+    }
+
+    function sourceIndexForTarget(targetIndex) {
+      return targetIndex === 0 ? 1 : 0;
+    }
+
+    function finishPouring() {
+      if (endingStarted) return;
+      endingStarted = true;
+      callbacksRef.current.onCountdownChange?.(null);
+      if (glasses[heldHandSlot ?? 0].volume < 50) {
+        callbacksRef.current.onNotice?.("NOT ENOUGH CHAAYA");
+        window.setTimeout(() => {
+          activeFrame = 0;
+          heldHandSlot = null;
+          sugarAdded = false;
+          score = 0;
+          glasses[0] = { volume: 0, override: "empty" };
+          glasses[1] = { volume: 0, override: "empty" };
+          endingStarted = false;
+          currentFrameRef.current = 0;
+          callbacksRef.current.onScoreChange?.(0);
+          callbacksRef.current.onReset?.();
+        }, 1800);
+        return;
+      }
+
+      const ending = score < 4 ? "BAD" : score <= 7 ? "MED" : "GOOD";
+      callbacksRef.current.onEnding?.(ending);
+    }
+
+    function checkFrameOneProgress(now) {
+      if (activeFrame !== 0 || heldHandSlot !== null) return;
+      const handIndex = handPoses.findIndex((hand) => hand && getVisualX(hand) > frameOneMilkZone.right);
+      if (handIndex === -1) {
+        frameOneHoldStarted = null;
+        return;
+      }
+      if (frameOneHoldStarted === null) frameOneHoldStarted = now;
+      if (now - frameOneHoldStarted >= frameOneHoldDuration) {
+        heldHandSlot = handIndex;
+        activeFrame = 1;
+        currentFrameRef.current = 1;
+        callbacksRef.current.onFrameChange?.(1);
+      }
+    }
+
+    function checkFrameTwoProgress() {
+      if (activeFrame !== 1 || heldHandSlot === null) return;
+      const hand = handPoses[heldHandSlot];
+      if (!hand || !canvasRef.current.width || !canvasRef.current.height) return;
+      const x = getVisualX(hand);
+      const y = hand.anchor.y / canvasRef.current.height;
+      if (!sugarAdded && x > frameTwoSugarZone.right && y > frameTwoSugarZone.bottom) {
+        sugarAdded = true;
+        score += 5;
+        callbacksRef.current.onScoreChange?.(score);
+        callbacksRef.current.onNotice?.("SUGAR ADDED");
+      }
+      if (x < frameTwoChayaPodiZone.left && y > frameTwoChayaPodiZone.bottom) {
+        glasses[heldHandSlot] = { volume: 100, override: null };
+        currentFrameRef.current = 2;
+        callbacksRef.current.onFrameChange?.(2);
+      }
+    }
+
+    function getVisualX(hand) {
+      return 1 - hand.anchor.x / canvasRef.current.width;
     }
 
     function drawTeaParticles(ctx) {
@@ -358,7 +524,7 @@ export default function HandTracker() {
   }, []);
 
   return (
-    <div className="hand-tracker">
+    <div className="hand-tracker" data-current-frame={currentFrame}>
       <video
         ref={videoRef}
         playsInline
@@ -367,6 +533,8 @@ export default function HandTracker() {
 
       <canvas
         ref={canvasRef}
+        className="z-1000"
+        style={{ zIndex: 1000 }}
       />
 
     </div>

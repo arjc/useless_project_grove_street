@@ -3,17 +3,22 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  background: url('./assets/bg.jpg');
+  
 }
 
 .hand-tracker {
-  position: relative;
-  width: min(920px, calc(100vw - 32px));
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 95vw;
   /* width: 100vw; */
-
-  margin: 24px auto;
+  /* margin: 24px auto; */
   overflow: hidden;
   background: #000;
-  border: 1px solid #242844;
+  z-index: 10;
+  /* border: 1px solid #242844; */
 }
 
 .hand-tracker video,
@@ -29,23 +34,10 @@ body {
   inset: 0;
 }
 
-.hand-tracker__legend {
-  position: absolute;
-  left: 16px;
-  bottom: 14px;
-  padding: 7px 10px;
-  color: #f7f4ff;
-  background: rgba(8, 12, 28, 0.74);
-  border: 1px solid rgba(125, 249, 255, 0.5);
-  border-radius: 999px;
-  font: 600 12px/1 var(--mono);
-  letter-spacing: 0;
-  text-transform: uppercase;
-}
 
 #root {
   width: 1126px;
-  max-width: 100%;
+  max-width: 100vw;
   margin: 0 auto;
   text-align: center;
   border-inline: 1px solid var(--border);
@@ -84,17 +76,57 @@ p {
   margin: 0;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+.countdown {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 30;
+  color: #000;
+  font: 24px sans-serif;
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+.score {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 30;
+  color: #000;
+  font: 24px sans-serif;
+}
+
+.notice {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 30;
+  color: #000;
+  font: 28px sans-serif;
+  transform: translate(-50%, -50%);
+  animation: fade-notice 2.2s ease-out forwards;
+}
+
+.ending-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: #000;
+  animation: fade-in 700ms ease-out forwards;
+}
+
+.ending-overlay video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-notice {
+  0%, 65% { opacity: 1; }
+  100% { opacity: 0; }
 }
