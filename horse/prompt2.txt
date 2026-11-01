@@ -1,0 +1,24 @@
+there are three stages to this game:
+
+FRAME 1 (STATE 1) we start with milkFrame
+initially the user's hand gets an empty glass on either hands (sprite CHAYA_EMPTY) which they are required to hold near the right side of the image and the 
+glass sprite changes to CHAYA_MILK and the next frame "podiFrame"
+
+FRAME 2
+user is still holding the milk glass or CHAYA_MILK sprite on their either hands and they now have to move their glass to the rigth most bottom corner to add sugar 
+if they want and itll say sugar added and fade away on the center of the screen. When they move their hand to the Left most bottom part it shall change the 
+sprite to CHAYA_FULL and they shall move to the next Frame 3 the "end frame" and scale the frame image from 100 to 170 using tailwind with transitions
+
+FRAME 3
+this is where the user gets an adittional empty glass and this is where they shall perform the regular chaya pouring which is already present in this project.
+Therer is a countdown from 15 on top right of the screen (non stylized just black font numbers no drop shadow no colours plain text) which counts down to 0 and
+If the chaya volume decreases below 50 when the counter ends it should say not enough CHAAYA and goes back to start with all the frame 1 features.
+If there is enough chaya we shall look at the following parameters to check the scrore or ending:
+Put sugar +5 points in FRAME 2
+each successfull pouring from one glass to another in FRAME 3 gains +1 point
+if less than 5 points: BAD ENDING
+if between 6-8 points: MED ENDING
+if more than 8 points: GOOD ENDING
+the scale of the frame image is set back to regular 100 and then
+the entire screen fades to black and the the chaaya sprite which was currently held goes to a specific position on the page 
+and a video / gif fades in on top of all and it plays a corresponding gif / video in full screeen from the ENDINGS folder.

@@ -49,15 +49,7 @@ const App = () => {
       {notice && <div className="notice">{notice}</div>}
       {ending && (
         <div className="ending-overlay">
-          <video
-            key={ending}
-            src={endings[ending]}
-            autoPlay
-            playsInline
-            onEnded={() => {
-              window.location.reload();
-            }}
-          />
+          <video key={ending} src={endings[ending]} autoPlay playsInline onEnded={() => { window.location.reload();}}/>
         </div>
       )}
       <HandTracker

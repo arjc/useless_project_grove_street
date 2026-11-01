@@ -1,0 +1,17 @@
+My goal now is to make tea pour out of from the chaya tumbler from one to another.
+
+As the tumbler is facing sideways or is like poured down the liquid tea falls out from the brim of the tea glass which is the top-left or 
+top-right vertex of the image (whatever vertext is facing down except the bottom ones of the image). It pours some coloured particles for the tea
+liquids and the second accepting tumbler's brim is having a hitbox where the particles are fallen from the pouring tumbler. As it is poured out completely, it is having a value of 0
+where all the liquids in it are over and the second tumbeler has the amout of particles it caught on its brim hitbox.
+
+The tumbler having the tea now can be poured and it doesnt need to be full or be empty in order for it to be poured it has to be not empty. You get the idea. show overlay that how much 
+is present in each glass and if it exceedes by 90 it shows the full sprite, if its bw 30 and 60 percent it shows the half sprite and if it shows anything below that is low and nothing is empty.
+All sprites are present in the tStates dir...
+
+Make it look as real as possible despite the complexit it must be functional and must look good.
+
+Im my ways are not realistic suggest a better way and implement it mayble like realistic water and stuff
+
+Make a counter which looks for each success full pours and calculate the speed or distance between the two glasses with respect to their size so that even if they are far away the 
+coordinate geometry wont be used to show their distance between the two
